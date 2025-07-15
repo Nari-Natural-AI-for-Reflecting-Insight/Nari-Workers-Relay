@@ -1,6 +1,16 @@
-name = "openai-workers-relay"
+name = "nari-workers-relay"
 main = "src/index.ts"
-compatibility_date = "2024-10-10"
+compatibility_date = "2025-06-12"
+
+compatibility_flags = ["nodejs_compat"]
+
+routes = [
+  # 반드시 custom_domain = true
+  { pattern = "wss-relay.nari-web.com", custom_domain = true }
+]
+
+[observability.logs]
+enabled = true
 
 # This will deploy the project by default to openai-workers-relay.<username>.workers.dev. 
 # You can modify this by changing the name of the project in wrangler.toml, 
