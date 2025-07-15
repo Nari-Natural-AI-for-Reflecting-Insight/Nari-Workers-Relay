@@ -25,7 +25,7 @@ export class RealtimeClientService {
       });
       return this.client;
     } catch (error) {
-      logger.error("OpenAI RealtimeClient 생성 오류", error);
+      logger.error("OpenAI RealtimeClient 생성중 오류가 발생하였습니다. ", error);
 
       throw new Error("OpenAI RealtimeClient를 생성하는 데 실패했습니다.");
     }
