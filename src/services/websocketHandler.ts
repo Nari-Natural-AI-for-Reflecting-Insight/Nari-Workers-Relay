@@ -3,12 +3,25 @@ import { setupEventRelays } from '../utils/eventRelay';
 import { logger } from '../utils/logger';
 import type { Env } from '../types';
 import { Errors, logAndCreateError } from '../utils/errors';
+import { ApiClient } from '../api';
+
+
+type HandleWebSocketUpgradeParams = {
+  parentTalkId: string;
+  jwtToken: string;
+};
 
 export async function handleWebSocketUpgrade(
   request: Request,
   env: Env,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
+  { parentTalkId, jwtToken }: HandleWebSocketUpgradeParams
 ): Promise<Response> {
+
+
+  const apiClient = new ApiClient(env, jwtToken);
+  const talkSessionInfo = await apiClient.getTalk(parentTalkId, crypto.randomUUID());
+
   const webSocketPair = new WebSocketPair();
   const [clientSocket, serverSocket] = Object.values(webSocketPair);
 
@@ -51,3 +64,4 @@ function createResponseHeaders(request: Request): Headers {
   
   return headers;
 }
+

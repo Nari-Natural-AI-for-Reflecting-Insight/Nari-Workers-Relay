@@ -1,6 +1,7 @@
 import { handleWebSocketUpgrade } from './services/websocketHandler';
 import type { Env } from './types';
 import { createErrorResponse, Errors } from './utils/errors';
+import { validateWebSocketRequest } from './utils/requestValidator';
 
 export default {
   async fetch(
@@ -9,11 +10,15 @@ export default {
     ctx: ExecutionContext
   ): Promise<Response> {
     
-    const upgradeHeader = request.headers.get("Upgrade");
-    if (upgradeHeader !== "websocket") {
-      return createErrorResponse(Errors.INVALID_REQUEST);
+    // 요청 유효성 검사
+    const validationResult = validateWebSocketRequest(request);
+    if (!validationResult.success || !validationResult.data) {
+      return validationResult.error || createErrorResponse(Errors.INVALID_REQUEST);
     }
 
-    return handleWebSocketUpgrade(request, env, ctx);
+    return handleWebSocketUpgrade(request, env, ctx, {
+      parentTalkId: validationResult.data.parentTalkId,
+      jwtToken: validationResult.data.jwtToken,
+    });
   },
 };

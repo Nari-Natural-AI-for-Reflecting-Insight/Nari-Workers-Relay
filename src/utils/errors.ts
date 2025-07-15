@@ -12,7 +12,11 @@ export const Errors = {
   INTERNAL_ERROR: {
     message: 'Internal server error',
     status: 500
-  }
+  },
+  UNAUTHORIZED: {
+    message: '로그인 정보가 없습니다. 로그인 후 다시 시도해주세요.',
+    status: 401
+  },
 } as const;
 
 export type AppError = typeof Errors[keyof typeof Errors];
