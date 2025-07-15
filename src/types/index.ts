@@ -5,14 +5,21 @@ export type Env = {
 
 export type WebSocketMessage = {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-export type ConversationItem  = {
-  id: string;
-  type: string;
-  content: any;
-  [key: string]: any;
+export type TalkUpdatedEvent =  {
+  item: {
+    id: string;
+  };
+  delta: ItemContentDelta | null;
+}
+
+export type ItemContentDelta = {
+  text?: string;
+  audio?: Int16Array;
+  arguments?: string;
+  transcript?: string;
 }
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

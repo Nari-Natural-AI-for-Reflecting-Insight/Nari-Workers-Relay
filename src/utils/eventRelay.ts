@@ -1,6 +1,7 @@
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import { RealtimeClientService } from '../services/realtimeClient';
 import { logger } from './logger';
+import { TalkUpdatedEvent } from "../types";
 
 export function setupEventRelays(
   realtimeClient: RealtimeClient,
@@ -18,9 +19,9 @@ export function setupEventRelays(
   });
 
   // Conversation updates
-  realtimeClient.on("conversation.updated", async ({ item, delta }: any) => {
+  realtimeClient.on("conversation.updated", async ({ item, delta }: TalkUpdatedEvent) => {
     const items = realtimeClient.conversation.getItems();
-    items.forEach((item: any) => {
+    items.forEach((item: unknown) => {
       console.log("Item:", item);
     });
   });
