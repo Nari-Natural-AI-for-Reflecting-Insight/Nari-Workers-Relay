@@ -1,27 +1,3 @@
-export type Env = {
-  OPENAI_API_KEY: string;
-  API_BASE_URL: string;
-}
-
-export type WebSocketMessage = {
-  type: string;
-  [key: string]: unknown;
-}
-
-export type TalkUpdatedEvent =  {
-  item: {
-    id: string;
-  };
-  delta: ItemContentDelta | null;
-}
-
-export type ItemContentDelta = {
-  text?: string;
-  audio?: Int16Array;
-  arguments?: string;
-  transcript?: string;
-}
-
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiSuccess<T> {
@@ -69,4 +45,7 @@ export type TalkSessionInfo = {
   completedAt: string | null; // 완료 시각, 없으면 null
 };
 
-export type CreateTalkSessionResponse = ApiSuccess<TalkSessionInfo>;
+export type CreateTalkSessionRequest = {
+  parentTalkId: string; // 부모 Talk의 ID
+  idempotencyKey: string; // idempotency key
+};

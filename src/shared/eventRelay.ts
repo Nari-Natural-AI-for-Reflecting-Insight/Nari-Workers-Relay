@@ -1,7 +1,7 @@
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import { RealtimeClientService } from '../services/realtimeClient';
 import { logger } from './logger';
-import { TalkUpdatedEvent } from "../types";
+import { TalkUpdatedEvent } from "../services/types";
 
 export function setupEventRelays(
   realtimeClient: RealtimeClient,

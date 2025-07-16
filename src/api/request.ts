@@ -1,10 +1,10 @@
-import { Env } from '../types';
-import { logger } from '../utils/logger';
+import type { Env } from '../shared/types';
+import { logger } from '../shared/logger';
 import {
   ApiEnvelope,
   ApiError,
   HttpMethod,
-} from '../types';
+} from './types';
 
 interface ApiOptions extends Omit<RequestInit, 'headers'> {
   jwtToken?: string;

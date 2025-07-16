@@ -1,8 +1,8 @@
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import { getOpenAIUrl, CONFIG } from '../config/constants';
-import { logger } from '../utils/logger';
-import { validateEnv } from '../utils/validation';
-import type { Env } from '../types';
+import { logger } from '../shared/logger';
+import { validateEnv } from '../shared/validation';
+import type { Env } from '../shared/types';
 
 export class RealtimeClientService {
   private client: RealtimeClient | null = null;

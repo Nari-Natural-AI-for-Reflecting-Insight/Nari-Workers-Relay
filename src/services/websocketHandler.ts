@@ -1,8 +1,8 @@
 import { RealtimeClientService } from './realtimeClient';
-import { setupEventRelays } from '../utils/eventRelay';
-import { logger } from '../utils/logger';
-import type { Env } from '../types';
-import { Errors, logAndCreateError } from '../utils/errors';
+import { setupEventRelays } from '../shared/eventRelay';
+import { logger } from '../shared/logger';
+import type { Env } from '../shared/types';
+import { Errors, logAndCreateError } from '../shared/errors';
 import { ApiClient } from '../api';
 
 
@@ -20,7 +20,7 @@ export async function handleWebSocketUpgrade(
 
 
   const apiClient = new ApiClient(env, jwtToken);
-  const talkSessionInfo = await apiClient.getTalk(parentTalkId, crypto.randomUUID());
+  const talkSessionInfo = await apiClient.createTalkSession(parentTalkId, crypto.randomUUID());
 
   const webSocketPair = new WebSocketPair();
   const [clientSocket, serverSocket] = Object.values(webSocketPair);

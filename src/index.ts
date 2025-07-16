@@ -1,7 +1,7 @@
 import { handleWebSocketUpgrade } from './services/websocketHandler';
-import type { Env } from './types';
-import { createErrorResponse, Errors } from './utils/errors';
-import { validateWebSocketRequest } from './utils/requestValidator';
+import type { Env } from './shared/types';
+import { createErrorResponse, Errors } from './shared/errors';
+import { validateWebSocketRequest } from './shared/requestValidator';
 
 export default {
   async fetch(
