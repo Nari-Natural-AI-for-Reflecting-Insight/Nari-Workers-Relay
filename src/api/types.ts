@@ -1,3 +1,5 @@
+import { contentType, SessionItemRole } from "../services/types";
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiSuccess<T> {
@@ -46,6 +48,9 @@ export type TalkSessionInfo = {
 };
 
 export type CreateTalkSessionRequest = {
-  parentTalkId: string; // 부모 Talk의 ID
-  idempotencyKey: string; // idempotency key
+  sessionId: number; // 세션 ID, TalkSessionInfo.talkSessionId와 동일
+  sessionItemId: string// 세션 아이템 ID
+  sessionItemRole: SessionItemRole
+  contentText: string;
+  contentType: contentType; 
 };

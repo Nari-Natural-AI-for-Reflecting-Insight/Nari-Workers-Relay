@@ -3,14 +3,13 @@ import { getOpenAIUrl, CONFIG } from '../config/constants';
 import { logger } from '../shared/logger';
 import { validateEnv } from '../shared/validation';
 import type { Env } from '../shared/types';
+import { contentType, SessionItem, SessionItemRole } from "./types";
 
 export class RealtimeClientService {
   private client: RealtimeClient | null = null;
   private messageQueue: string[] = [];
 
-  constructor(private env: Env) {}
-
-  async createClient(): Promise<RealtimeClient> {
+  constructor(private env: Env) {
     // 환경 변수 검증
     const validation = validateEnv(this.env);
     if (!validation.valid) {
@@ -23,7 +22,6 @@ export class RealtimeClientService {
         debug: CONFIG.DEBUG,
         url: getOpenAIUrl(),
       });
-      return this.client;
     } catch (error) {
       logger.error("OpenAI RealtimeClient 생성중 오류가 발생하였습니다. ", error);
 
@@ -79,5 +77,40 @@ export class RealtimeClientService {
 
   getClient(): RealtimeClient | null {
     return this.client;
+  }
+
+  onServerEvent(
+    callback: (event: { type: string}) => void
+  ): void {
+    this.client?.realtime.on("server.*", (event: { type: string }) => {
+      callback(event);
+    });
+  }
+
+  onCloseEvent(
+    callback: (metadata: { error: boolean }) => void
+  ): void {
+    this.client?.realtime.on("close", (metadata: { error: boolean }) => {
+      callback(metadata);
+    });
+  }
+
+  onConversationItemUpdated(
+    callback: (sessionItems: SessionItem[]) => void
+  ): void {
+    this.client?.on("conversation.item.completed", (event: unknown) => {
+      const sessionItems = this.client?.conversation.getItems().map((item) => {
+        const sessionItem:SessionItem = {
+            id: item.id,
+            role: item.role as SessionItemRole,
+            status: 'completed',
+            contentText: item.formatted.text || item.formatted.transcript || '' as string,
+            contentType: item.type as contentType,
+        }
+        return sessionItem;
+      }) as SessionItem[] || [];
+
+      callback(sessionItems);
+    });
   }
 }

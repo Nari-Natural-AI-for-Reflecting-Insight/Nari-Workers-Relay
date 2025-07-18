@@ -1,7 +1,7 @@
 // api-client.ts --------------------------------------------------
 import { apiRequest } from './request';
 import type { Env } from '../shared/types';
-import { TalkSessionInfo } from './types';
+import { CreateTalkSessionRequest, TalkSessionInfo } from './types';
 import { HttpMethod } from './types';
 
 export class ApiClient {
@@ -19,6 +19,10 @@ export class ApiClient {
       parentTalkId,  
       idempotencyKey
     });
+  }
+
+  createSessionItem(request: CreateTalkSessionRequest): Promise<void> {
+    return this.request<void>('POST', `/talk/session/${request.sessionId}/item`, request);
   }
 
 }
