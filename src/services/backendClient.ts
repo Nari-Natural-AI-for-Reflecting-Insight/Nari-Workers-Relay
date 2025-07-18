@@ -8,13 +8,10 @@ export class BackendClientService {
   private talkSessionInfo: TalkSessionInfo | undefined;
   private sessionItemMap: Map<string, SessionItem>;
 
-  constructor(
-    private env: Env, 
-    private jwt: string
-) {
-    this.apiClient = new ApiClient(env, jwt);
+  constructor( env: Env, jwt: string){
+  	this.apiClient = new ApiClient(env, jwt);
     this.sessionItemMap = new Map();
-}
+  }
 
   async createTalkSession(parentTalkId: string): Promise<TalkSessionInfo> {
        const talkSessionInfo = await this.apiClient.createTalkSession(parentTalkId, crypto.randomUUID());

@@ -5,7 +5,7 @@ export type SessionUpdatedEvent =  {
 
 export type SessionItemRole = 'user' | 'assistant';
 
-export type contentType = 'input_text' | 'input_audio' | 'audio';
+export type ContentType = 'input_text' | 'input_audio' | 'audio';
 
 export type SessionItemStatus = 'in_progress' | 'completed'; 
 
@@ -14,7 +14,7 @@ export type SessionItem = {
   role: SessionItemRole;
   status: SessionItemStatus;
   contentText: string;
-  contentType: contentType;
+  contentType: ContentType;
 }
 
 export type ItemContentDelta = {

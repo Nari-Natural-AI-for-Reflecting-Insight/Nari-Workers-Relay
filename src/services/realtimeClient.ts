@@ -3,10 +3,10 @@ import { getOpenAIUrl, CONFIG } from '../config/constants';
 import { logger } from '../shared/logger';
 import { validateEnv } from '../shared/validation';
 import type { Env } from '../shared/types';
-import { contentType, SessionItem, SessionItemRole } from "./types";
+import { ContentType, SessionItem, SessionItemRole } from "./types";
 
 export class RealtimeClientService {
-  private client: RealtimeClient | null = null;
+  private client: RealtimeClient;
   private messageQueue: string[] = [];
 
   constructor(private env: Env) {
@@ -30,10 +30,6 @@ export class RealtimeClientService {
   }
 
   async connect(): Promise<void> {
-    if (!this.client) {
-      throw new Error("클라이언트가 생성되지 않았습니다. 먼저 createClient()를 호출하세요.");
-    }
-
     await this.client.connect();
     
     // Process queued messages
@@ -48,7 +44,7 @@ export class RealtimeClientService {
    * 연결되기 전까지 저장한 메시지를 전송
    */
   private processMessageQueue(): void {
-    while (this.messageQueue.length && this.client?.isConnected()) {
+    while (this.messageQueue.length && this.client.isConnected()) {
       const message = this.messageQueue.shift();
       if (message) {
         this.sendMessage(message);
@@ -57,7 +53,7 @@ export class RealtimeClientService {
   }
 
   sendMessage(data: string): void {
-    if (!this.client?.isConnected()) {
+    if (!this.client.isConnected()) {
       this.queueMessage(data);
       return;
     }
@@ -82,7 +78,7 @@ export class RealtimeClientService {
   onServerEvent(
     callback: (event: { type: string}) => void
   ): void {
-    this.client?.realtime.on("server.*", (event: { type: string }) => {
+    this.client.realtime.on("server.*", (event: { type: string }) => {
       callback(event);
     });
   }
@@ -90,7 +86,7 @@ export class RealtimeClientService {
   onCloseEvent(
     callback: (metadata: { error: boolean }) => void
   ): void {
-    this.client?.realtime.on("close", (metadata: { error: boolean }) => {
+    this.client.realtime.on("close", (metadata: { error: boolean }) => {
       callback(metadata);
     });
   }
@@ -98,19 +94,16 @@ export class RealtimeClientService {
   onConversationItemUpdated(
     callback: (sessionItems: SessionItem[]) => void
   ): void {
-    this.client?.on("conversation.item.completed", (event: unknown) => {
-      const sessionItems = this.client?.conversation.getItems().map((item) => {
-        const sessionItem:SessionItem = {
-            id: item.id,
-            role: item.role as SessionItemRole,
-            status: 'completed',
-            contentText: item.formatted.text || item.formatted.transcript || '' as string,
-            contentType: item.type as contentType,
-        }
-        return sessionItem;
-      }) as SessionItem[] || [];
+      this.client.on("conversation.item.completed", (event: unknown) => {
+        const sessionItems = this.client.conversation.getItems().map((item) => ({
+          id: item.id,
+          role: item.role as SessionItemRole,
+          status: 'completed' as const,
+          contentText: item.formatted?.text || item.formatted?.transcript || '',
+          contentType: item.type as ContentType
+        }));
 
-      callback(sessionItems);
+        callback(sessionItems);
     });
   }
 }

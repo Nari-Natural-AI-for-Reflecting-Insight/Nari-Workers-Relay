@@ -30,7 +30,7 @@ export default {
       // 백엔드에 Talk Session 생성 요청, 응답 받은 Talk Session 정보는 backendClientService 객체에 보관 
       await backendClientService.createTalkSession(parentTalkId);
     } catch (error) {
-      return createErrorResponse(Errors.CONNECTION_FAILED);
+      return createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
     }
 
     return handleWebSocketUpgrade({

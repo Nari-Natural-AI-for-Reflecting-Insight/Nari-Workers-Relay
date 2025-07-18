@@ -56,9 +56,9 @@ export async function apiRequest<T, E = unknown>(
 
   // 1) HTTP 자체 오류
   if (!res.ok) {
-    const faliResponse = parsed as ApiFailure<E>;
+    const failResponse = parsed as ApiFailure<E>;
 
-    logger.error('HTTP error', { path, status: res.status, message: faliResponse.error.message });
+    logger.error('HTTP error', { path, status: res.status, message: failResponse.error.message });
     throw new ApiError('E_HTTP', `HTTP ${res.status}`, null);
   }
 

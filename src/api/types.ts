@@ -1,4 +1,4 @@
-import { contentType, SessionItemRole } from "../services/types";
+import { ContentType, SessionItemRole } from "../services/types";
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -49,8 +49,8 @@ export type TalkSessionInfo = {
 
 export type CreateTalkSessionRequest = {
   sessionId: number; // 세션 ID, TalkSessionInfo.talkSessionId와 동일
-  sessionItemId: string// 세션 아이템 ID
-  sessionItemRole: SessionItemRole
+  sessionItemId: string;// 세션 아이템 ID
+  sessionItemRole: SessionItemRole;
   contentText: string;
-  contentType: contentType; 
+  contentType: ContentType; 
 };
