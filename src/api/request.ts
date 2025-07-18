@@ -1,10 +1,11 @@
-import { Env } from '../types';
-import { logger } from '../utils/logger';
+import type { Env } from '../shared/types';
+import { logger } from '../shared/logger';
 import {
   ApiEnvelope,
   ApiError,
+  ApiFailure,
   HttpMethod,
-} from '../types';
+} from './types';
 
 interface ApiOptions extends Omit<RequestInit, 'headers'> {
   jwtToken?: string;
@@ -55,8 +56,10 @@ export async function apiRequest<T, E = unknown>(
 
   // 1) HTTP 자체 오류
   if (!res.ok) {
-    logger.error('HTTP error', { path, status: res.status });
-    throw new ApiError('E_HTTP', `HTTP ${res.status}`, null, res.status);
+    const failResponse = parsed as ApiFailure<E>;
+
+    logger.error('HTTP error', { path, status: res.status, message: failResponse.error.message });
+    throw new ApiError('E_HTTP', `HTTP ${res.status}`, null);
   }
 
   // 2) 비즈니스 오류

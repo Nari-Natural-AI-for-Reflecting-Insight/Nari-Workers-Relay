@@ -17,6 +17,10 @@ export const Errors = {
     message: '로그인 정보가 없습니다. 로그인 후 다시 시도해주세요.',
     status: 401
   },
+  TALK_CREATE_SESSION_FAILED: {
+    message: 'Talk Session 생성에 실패했습니다.',
+    status: 400
+  },
 } as const;
 
 export type AppError = typeof Errors[keyof typeof Errors];

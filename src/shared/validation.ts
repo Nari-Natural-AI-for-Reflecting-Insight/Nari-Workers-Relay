@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import type { Env } from '../types';
+import type { Env } from '../shared/types';
 
 export function validateEnv(env: Env): {
   valid: boolean;
