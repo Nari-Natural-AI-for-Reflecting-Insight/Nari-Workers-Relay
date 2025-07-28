@@ -37,7 +37,7 @@ export default {
     } catch (error) {
       return await createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
     }
-
+      
     return handleWebSocketUpgrade({
       backendClientService,
       realtimeClientService,
