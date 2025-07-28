@@ -1,46 +1,31 @@
-import { handleWebSocketUpgrade } from './services/websocketHandler';
-import type { Env } from './shared/types';
-import { createErrorResponse, Errors } from './shared/errors';
-import { validateWebSocketRequest } from './shared/requestValidator';
-import { createAppContext } from './shared/appContext';
-import { logger } from './shared/logger';
+import { apiRequest } from './request';
+import type { Env } from '../shared/types';
+import { CreateTalkSessionRequest, TalkSessionInfo } from './types';
+import { HttpMethod } from './types';
+import { logger } from '../shared/logger';
 
-export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<Response> {
+export class ApiClient {
+  constructor(private env: Env, private jwt?: string) {}
 
-    logger.changeLoggerConfigByEnv(env);
-    logger.debug("---WebSocket 요청이 들어왔습니다.---");
+  private async request<T>(method: HttpMethod, path: string, body?: unknown): Promise<T> {
 
-    const {
-      backendClientServiceFactory,
-      realtimeClientService
-    } = createAppContext(env);
+    logger.debug(`API 요청: ${method} ${path}`, body);
 
-    // 요청 유효성 검사
-    const validationResult = await validateWebSocketRequest(request);
-    if (!validationResult.success || !validationResult.data) {
-      return validationResult.error || await createErrorResponse(Errors.INVALID_REQUEST);
-    }
-
-    logger.debug("유효성 검사 통과, 입력받은 데이터: ", validationResult.data);
-
-    const { jwtToken, parentTalkId } = validationResult.data;
-    const backendClientService = backendClientServiceFactory(jwtToken);
-
-    try {
-      // Talk Session 생성
-      await backendClientService.createTalkSession(parentTalkId);
-    } catch (error) {
-      return await createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
-    }
-
-    return handleWebSocketUpgrade({
-      backendClientService,
-      realtimeClientService,
+    return await apiRequest<T>(this.env, method, path, {
+      jwtToken: this.jwt,
+      body: body ? JSON.stringify(body) : undefined,
     });
-  },
-};
+  }
+
+  async createTalkSession(parentTalkId: string, idempotencyKey: string): Promise<TalkSessionInfo> {
+    return await this.request<TalkSessionInfo>('POST', '/talk/session', {
+      parentTalkId,  
+      idempotencyKey
+    });
+  }
+
+  async createSessionItem(request: CreateTalkSessionRequest): Promise<void> {
+    return await this.request<void>('POST', `/talk/session/${request.sessionId}/item`, request);
+  }
+
+}
