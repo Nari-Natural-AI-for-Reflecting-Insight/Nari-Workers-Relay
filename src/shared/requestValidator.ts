@@ -1,4 +1,5 @@
 import { createErrorResponse, Errors } from './errors';
+import { logger } from './logger';
 
 export interface ValidationResult {
   success: boolean;
@@ -9,33 +10,39 @@ export interface ValidationResult {
   error?: Response;
 }
 
-export function validateWebSocketRequest(request: Request): ValidationResult {
+export async function validateWebSocketRequest(request: Request): Promise<ValidationResult> {
 
 	// WebSocket 업그레이드 요청인지 확인
   const upgradeHeader = request.headers.get("Upgrade");
+  logger.debug("request -> Upgrade header:", upgradeHeader);
+
   if (upgradeHeader !== "websocket") {
     return {
       success: false,
-      error: createErrorResponse(Errors.INVALID_REQUEST)
+      error: await createErrorResponse(Errors.INVALID_REQUEST)
     };  
   }
 
   // URL에서 talkId 파라미터 추출
   const url = new URL(request.url);
   const parentTalkId = url.searchParams.get('parentTalkId');
+  logger.debug("request -> parentTalkId:", parentTalkId);
+
   if (!parentTalkId) {
     return {
       success: false,
-      error: createErrorResponse(Errors.INVALID_REQUEST)
+      error: await createErrorResponse(Errors.INVALID_REQUEST)
     };
   }
 
   // 헤더에서 JWT 토큰 추출
   const jwtToken = extractJwtToken(request);
+  logger.debug("request -> JWT Token:", jwtToken);
+
   if (!jwtToken) {
     return {
       success: false,
-      error: createErrorResponse(Errors.UNAUTHORIZED)
+      error: await createErrorResponse(Errors.UNAUTHORIZED)
     };
   }
 

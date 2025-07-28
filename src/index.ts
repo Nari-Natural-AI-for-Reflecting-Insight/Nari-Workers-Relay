@@ -2,13 +2,8 @@ import { handleWebSocketUpgrade } from './services/websocketHandler';
 import type { Env } from './shared/types';
 import { createErrorResponse, Errors } from './shared/errors';
 import { validateWebSocketRequest } from './shared/requestValidator';
-import { BackendClientService } from './services/backendClient';
-import { RealtimeClientService } from './services/realtimeClient';
-
-const createServices = (env: Env, jwtToken: string) => ({
-  backendClientService: new BackendClientService(env, jwtToken),
-  realtimeClientService: new RealtimeClientService(env),
-});
+import { createAppContext } from './shared/appContext';
+import { logger } from './shared/logger';
 
 export default {
   async fetch(
@@ -16,23 +11,33 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    
+
+    logger.changeLoggerConfigByEnv(env);
+    logger.debug("---WebSocket 요청이 들어왔습니다.---");
+
+    const {
+      backendClientServiceFactory,
+      realtimeClientService
+    } = createAppContext(env);
+
     // 요청 유효성 검사
-    const validationResult = validateWebSocketRequest(request);
+    const validationResult = await validateWebSocketRequest(request);
     if (!validationResult.success || !validationResult.data) {
-      return validationResult.error || createErrorResponse(Errors.INVALID_REQUEST);
+      return validationResult.error || await createErrorResponse(Errors.INVALID_REQUEST);
     }
+
+    logger.debug("유효성 검사 통과, 입력받은 데이터: ", validationResult.data);
 
     const { jwtToken, parentTalkId } = validationResult.data;
-    const { backendClientService, realtimeClientService } = createServices(env, jwtToken);
+    const backendClientService = backendClientServiceFactory(jwtToken);
 
     try {
-      // 백엔드에 Talk Session 생성 요청, 응답 받은 Talk Session 정보는 backendClientService 객체에 보관 
+      // Talk Session 생성
       await backendClientService.createTalkSession(parentTalkId);
     } catch (error) {
-      return createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
+      return await createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
     }
-
+      
     return handleWebSocketUpgrade({
       backendClientService,
       realtimeClientService,

@@ -25,11 +25,12 @@ export const Errors = {
 
 export type AppError = typeof Errors[keyof typeof Errors];
 
-export function createErrorResponse(error: AppError): Response {
+export async function createErrorResponse(error: AppError): Promise<Response> {
+  await logger.error(error.message);
   return new Response(error.message, { status: error.status });
 }
 
-export function logAndCreateError(error: AppError, details?: unknown): Response {
+export async function logAndCreateError(error: AppError, details?: unknown): Promise<Response> {
   logger.error(error.message, details);
-  return createErrorResponse(error);
+  return await createErrorResponse(error);
 }
