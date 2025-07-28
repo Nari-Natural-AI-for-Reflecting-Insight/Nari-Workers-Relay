@@ -1,6 +1,6 @@
 import { RealtimeClientService } from './realtimeClient';
 import { logger } from '../shared/logger';
-import { Errors, logAndCreateError } from '../shared/errors';
+import { createErrorResponse, Errors, logAndCreateError } from '../shared/errors';
 import { SessionItem } from './types';
 import { BackendClientService } from './backendClient';
 
@@ -67,7 +67,6 @@ export async function handleWebSocketUpgrade(
     realtimeClientService
    }: HandleWebSocketUpgradeParams
 ): Promise<Response> {
-
   const webSocketPair = new WebSocketPair();
   const [clientSocket, serverSocket] = Object.values(webSocketPair);
 
@@ -75,14 +74,19 @@ export async function handleWebSocketUpgrade(
   const responseHeaders = createResponseHeaders();
   
   try {
+
     // OpenAI와 Client 간의 이벤트 중계 설정
     setupServerToClientRelays(serverSocket, backendClientService, realtimeClientService);
 
     // Client에서 OpenAI로 이벤트 중계 설정
     setupClientToServerRelays(serverSocket, realtimeClientService);
     
+    logger.debug("openai websocket 연결 시도 중...");
+
     // OpenAI RealtimeClient 연결
     await realtimeClientService.connect();
+
+    logger.debug("openai websocket 연결 성공");
 
     return new Response(null, {
       status: 101,
@@ -90,8 +94,10 @@ export async function handleWebSocketUpgrade(
       webSocket: clientSocket,
     });
   } catch (error) {
-    logger.error("웹소켓 처리 에러", error);
     serverSocket.close();
-    return logAndCreateError(Errors.CONNECTION_FAILED);
+    logger.error("웹소켓 처리 에러: ", error);
+    const retResponse =  await createErrorResponse(Errors.CONNECTION_FAILED);
+    
+    return retResponse;
   }
 }

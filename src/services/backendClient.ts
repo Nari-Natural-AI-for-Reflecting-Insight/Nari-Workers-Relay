@@ -14,10 +14,12 @@ export class BackendClientService {
   }
 
   async createTalkSession(parentTalkId: string): Promise<TalkSessionInfo> {
-       const talkSessionInfo = await this.apiClient.createTalkSession(parentTalkId, crypto.randomUUID());
-        this.talkSessionInfo = talkSessionInfo;
 
-       return talkSessionInfo;
+		const talkSessionInfo = await this.apiClient.createTalkSession(parentTalkId, crypto.randomUUID());
+
+		this.talkSessionInfo = talkSessionInfo;
+
+		return talkSessionInfo;
   }
 
   async updateCurrentSessionItems(sessionItems: SessionItem[]) {

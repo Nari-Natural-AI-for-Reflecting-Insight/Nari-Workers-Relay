@@ -58,7 +58,7 @@ export async function apiRequest<T, E = unknown>(
   if (!res.ok) {
     const failResponse = parsed as ApiFailure<E>;
 
-    logger.error('HTTP error', { path, status: res.status, message: failResponse.error.message });
+    await logger.error('HTTP error', { path, status: res.status, message: failResponse.error.message });
     throw new ApiError('E_HTTP', `HTTP ${res.status}`, null);
   }
 
