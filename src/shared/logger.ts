@@ -1,4 +1,3 @@
-import { Temporal } from "@js-temporal/polyfill";
 import { Env } from "./types";
 
 export class Logger {
@@ -8,8 +7,6 @@ export class Logger {
   private lokiUrl: string;
   private jobName: string;
   private requestHeaders: Record<string, string>;
-  
-  // 타임스탬프 중복 방지를 위한 필드들
   private lastTimestamp: bigint = 0n;
 
   constructor(
@@ -53,10 +50,17 @@ export class Logger {
 
   /**
    * 현재 타임스탬프를 나노초 단위로 반환합니다.
-   * 이전 타임스탬프와 같은 값이면 +1 나노초를 추가합니다.
+   * 이전 타임스탬프와 같은 값이면 +1 나노초를 추가합니다. (도착한 순서 보장)
+   * 
+   * milli seconds: 1초 = 1,000 밀리초
+   * micro seconds: 1초 = 1,000,000 마이크로초
+   * nano seconds: 1초 = 1,000,000,000 나노초
    */
   getTimestamp(): string {
-    const nowNs = Temporal.Now.instant().epochNanoseconds;
+
+    // date.now()는 밀리초 단위로 현재 시간을 반환합니다.
+    // 현재 시간을 나노초로 변환 
+    const nowNs = BigInt(Date.now()) * 1_000_000n; 
     
     // 현재 타임스탬프가 이전 타임스탬프와 같거나 작으면 +1 나노초
     if (nowNs <= this.lastTimestamp) {
