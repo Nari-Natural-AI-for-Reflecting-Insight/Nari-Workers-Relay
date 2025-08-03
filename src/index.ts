@@ -1,6 +1,6 @@
 import { handleWebSocketUpgrade } from './services/websocketHandler';
 import type { Env } from './shared/types';
-import { createErrorResponse, Errors } from './shared/errors';
+import { createErrorResponse, Errors, logCatchError } from './shared/errors';
 import { validateWebSocketRequest } from './shared/requestValidator';
 import { createAppContext } from './shared/appContext';
 import { logger } from './shared/logger';
@@ -32,9 +32,10 @@ export default {
     const backendClientService = backendClientServiceFactory(jwtToken);
 
     try {
-      // Talk Session 생성
       await backendClientService.createTalkSession(parentTalkId);
-    } catch (error) {
+    } catch (error: unknown) {
+
+      logCatchError(error, "Talk Session 생성 중 오류 발생");
       return await createErrorResponse(Errors.TALK_CREATE_SESSION_FAILED);
     }
       

@@ -21,6 +21,10 @@ export const Errors = {
     message: 'Talk Session 생성에 실패했습니다.',
     status: 400
   },
+  TALK_CANCELED: {
+    message: '현재 대화가 취소된 상태입니다.',
+    status: 400
+  },
 } as const;
 
 export type AppError = typeof Errors[keyof typeof Errors];
@@ -33,4 +37,16 @@ export async function createErrorResponse(error: AppError): Promise<Response> {
 export async function logAndCreateError(error: AppError, details?: unknown): Promise<Response> {
   logger.error(error.message, details);
   return await createErrorResponse(error);
+}
+
+export async function logCatchError(
+  error: unknown,
+  message: string = '예상치 못한 에러 발생'
+): Promise<Response> {
+  if (error instanceof Error) {
+    logger.error(`${message}: ${error.message}`, { stack: error.stack });
+  } else {
+    logger.error(`${message}: ${String(error)}`);
+  }
+  return await createErrorResponse(Errors.INTERNAL_ERROR);
 }
