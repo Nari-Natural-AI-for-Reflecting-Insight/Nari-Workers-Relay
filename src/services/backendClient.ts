@@ -54,7 +54,28 @@ export class BackendClientService {
             sessionItemRole: sessionItem.role,
             contentText: sessionItem.contentText,
             contentType: sessionItem.contentType,
+        }).catch((error: unknown) => {
+            // 에러가 발생하면 현재 세션 아이템을 초기화
+            console.error("세션 아이템 업데이트 중 오류 발생:", error);
+            this.sessionItemMap.clear();
+            throw error; // 에러를 다시 던져서 호출한 곳에서 처리하도록 함
         });
     }
+  }
+
+  async cancelTalk() {
+    if (!this.talkSessionInfo) {
+      throw new Error("Talk session 정보가 없습니다. 먼저 createTalkSession()을 호출하세요.");
+    }
+
+    await this.apiClient.cancelTalk({ talkId: this.talkSessionInfo.parentTalkId });
+  }
+
+  async completeTalk() {
+    if (!this.talkSessionInfo) {
+      throw new Error("Talk session 정보가 없습니다. 먼저 createTalkSession()을 호출하세요.");
+    }
+
+    await this.apiClient.completeTalk({ talkId: this.talkSessionInfo.parentTalkId });
   }
 }

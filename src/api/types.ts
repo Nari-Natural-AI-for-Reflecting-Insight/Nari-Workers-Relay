@@ -54,3 +54,11 @@ export type CreateTalkSessionRequest = {
   contentText: string;
   contentType: ContentType; 
 };
+
+export type CancelTalkRequest = {
+  talkId: number; // Talk ID
+}
+
+export type CompleteTalkRequest = {
+  talkId: number; // Talk ID
+};
