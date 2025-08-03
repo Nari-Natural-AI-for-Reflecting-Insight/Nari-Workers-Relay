@@ -6,7 +6,7 @@ export interface ApiSuccess<T> {
   result: 'SUCCESS';
   data: T;
   error: null;
-}
+};
 
 export interface ApiFailure<E = unknown> {
   result: 'ERROR';
@@ -16,7 +16,7 @@ export interface ApiFailure<E = unknown> {
     message: string;
     data: E | null;
   };
-}
+};
 
 export type ApiEnvelope<T, E = unknown> = ApiSuccess<T> | ApiFailure<E>;
 
@@ -30,7 +30,7 @@ export class ApiError<E = unknown> extends Error {
     super(message);
     this.name = 'ApiError';
   }
-}
+};
 
 export type TalkSessionStatus =
   | 'CREATED'
@@ -57,7 +57,7 @@ export type CreateTalkSessionRequest = {
 
 export type CancelTalkRequest = {
   talkId: number; // Talk ID
-}
+};
 
 export type CompleteTalkRequest = {
   talkId: number; // Talk ID
