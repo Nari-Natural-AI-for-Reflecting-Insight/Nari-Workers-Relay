@@ -4,6 +4,7 @@ import { logger } from '../shared/logger';
 import { validateEnv } from '../shared/validation';
 import type { Env } from '../shared/types';
 import { ContentType, SessionItem, SessionItemRole } from "./types";
+import { logCatchError } from "../shared/errors";
 
 export class RealtimeClientService {
   private client: RealtimeClient;
@@ -23,8 +24,7 @@ export class RealtimeClientService {
         url: getOpenAIUrl(),
       });
     } catch (error) {
-      logger.error("OpenAI RealtimeClient 생성중 오류가 발생하였습니다. ", error);
-
+      logCatchError(error, "OpenAI RealtimeClient 생성 중 오류 발생");
       throw new Error("OpenAI RealtimeClient를 생성하는 데 실패했습니다.");
     }
   }
@@ -61,8 +61,8 @@ export class RealtimeClientService {
     try {
       const parsedEvent = JSON.parse(data);
       this.client.realtime.send(parsedEvent.type, parsedEvent);
-    } catch (error) {
-      logger.error("클라이언트 메시지 전송 오류", error);
+    } catch (error: unknown) {
+      logCatchError(error, "메시지 전송 중 오류 발생");
     }
   }
 

@@ -1,3 +1,4 @@
+import { logCatchError } from "./errors";
 import { Env } from "./types";
 
 export class Logger {
@@ -42,7 +43,8 @@ export class Logger {
     return args.map(arg => {
       try {
         return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
-      } catch (e) {
+      } catch (e: unknown) {
+        logCatchError(e, '[argsToString] JSON 변환 실패');
         return '[json 변환 실패]';
       }
     }).join(' ');
@@ -75,8 +77,6 @@ export class Logger {
   createPayloadBy(message: string, level: string): Record<string, unknown> {
     const payloadTimestamp = this.getTimestamp();
     
-    console.log(`${this.prefix} [${level}] ${message}`, `[타임스탬프] ${payloadTimestamp}`);
-
     return {
       streams: [{
         stream: {
@@ -105,8 +105,8 @@ export class Logger {
         const errorText = await response.text();
         console.error(`${this.prefix} [메시지 전송 실패] ${message}`, `[error 응답] ${errorText}`);
       }
-    } catch (error) {
-      console.error(`${this.prefix} [메시지 전송 실패] ${message}`, error);
+    } catch (error: unknown) {
+      logCatchError(error, `${this.prefix} [메시지 전송 실패] ${message}`);
     }
   }
 

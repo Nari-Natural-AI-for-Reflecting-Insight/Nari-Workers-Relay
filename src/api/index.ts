@@ -1,6 +1,6 @@
 import { apiRequest } from './request';
 import type { Env } from '../shared/types';
-import { CreateTalkSessionRequest, TalkSessionInfo } from './types';
+import { CancelTalkRequest, CompleteTalkRequest, CreateTalkSessionRequest, TalkSessionInfo } from './types';
 import { HttpMethod } from './types';
 import { logger } from '../shared/logger';
 
@@ -9,7 +9,7 @@ export class ApiClient {
 
   private async request<T>(method: HttpMethod, path: string, body?: unknown): Promise<T> {
 
-    logger.debug(`API 요청: ${method} ${path}`, body);
+    logger.debug(`API 요청: ${method} ${path}`,`body ->`, body);
 
     return await apiRequest<T>(this.env, method, path, {
       jwtToken: this.jwt,
@@ -26,6 +26,14 @@ export class ApiClient {
 
   async createSessionItem(request: CreateTalkSessionRequest): Promise<void> {
     return await this.request<void>('POST', `/talk/session/${request.sessionId}/item`, request);
+  }
+
+  async cancelTalk(request: CancelTalkRequest): Promise<void> {
+    return await this.request<void>('POST', `/talk/${request.talkId}/cancel`);
+  }
+
+  async completeTalk(request: CompleteTalkRequest): Promise<void> {
+    return await this.request<void>('POST', `/talk/${request.talkId}/complete`);
   }
 
 }
