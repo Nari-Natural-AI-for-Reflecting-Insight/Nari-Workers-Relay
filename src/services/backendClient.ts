@@ -2,6 +2,7 @@ import type { Env } from '../shared/types';
 import { ApiClient } from "../api";
 import { TalkSessionInfo } from "../api/types";
 import { SessionItem } from "./types";
+import { logger } from '../shared/logger';
 
 export class BackendClientService {
   private apiClient: ApiClient;
@@ -56,7 +57,7 @@ export class BackendClientService {
             contentType: sessionItem.contentType,
         }).catch((error: unknown) => {
             // 에러가 발생하면 현재 세션 아이템을 초기화
-            console.error("세션 아이템 업데이트 중 오류 발생:", error);
+            logger.error("세션 아이템 업데이트 중 오류 발생:", error);
             this.sessionItemMap.clear();
             throw error; // 에러를 다시 던져서 호출한 곳에서 처리하도록 함
         });
