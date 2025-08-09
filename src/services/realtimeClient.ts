@@ -10,7 +10,10 @@ export class RealtimeClientService {
   private client: RealtimeClient;
   private messageQueue: string[] = [];
 
-  constructor(private env: Env) {
+  constructor(
+    private env: Env,
+    private dailyPsychologyCheckInstructions: string
+  ) {
     // 환경 변수 검증
     const validation = validateEnv(this.env);
     if (!validation.valid) {
@@ -32,8 +35,93 @@ export class RealtimeClientService {
   async connect(): Promise<void> {
     await this.client.connect();
     
-    // Process queued messages
+    // 연결 후 지시문과 설정 업데이트
+    await this.updateSessionWithInstructions();
+
     this.processMessageQueue();
+
+    // 심리상태 체크 시작
+    await this.startPsychologyCheck();
+    
+  }
+
+  /**
+   * 세션에 지시문과 설정을 업데이트
+   */
+  private async updateSessionWithInstructions(): Promise<void> {
+    try {
+      const sessionUpdate = {
+        type: 'session.update',
+        session: {
+          modalities: ['text', 'audio'],
+          instructions: this.dailyPsychologyCheckInstructions,
+          voice: 'alloy',
+          input_audio_format: 'pcm16',
+          output_audio_format: 'pcm16',
+          input_audio_transcription: {
+            model: 'whisper-1'
+          },
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 200
+          },
+          tools: [],
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_response_output_tokens: 4096
+        }
+      };
+
+      this.client.realtime.send('session.update', sessionUpdate);
+      logger.info('세션에 심리상태 체크 지시문을 업데이트했습니다.');
+    } catch (error) {
+      logCatchError(error, "세션 업데이트 중 오류 발생");
+      throw new Error("세션 설정을 업데이트하는 데 실패했습니다.");
+    }
+  }
+
+  /**
+   * 대화 시작 - 첫 번째 질문을 자동으로 시작
+   */
+  async startPsychologyCheck(): Promise<void> {
+    if (!this.client.isConnected()) {
+      throw new Error("클라이언트가 연결되지 않았습니다.");
+    }
+
+    try {
+
+      // 대화 히스토리 저장 용 
+      const startMessage = {
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [{
+            type: 'input_text',
+            text: '일일 심리상태 체크를 시작해주세요.'
+          }]
+        }
+      };
+
+      this.client.realtime.send('conversation.item.create', startMessage);
+      // Agent에게 상담을 시작하도록 요청 
+      const responseCreate = {
+        type: 'response.create',
+        response: {
+          modalities: ['text', 'audio'],
+          instructions: '이제 사용자와 연결되었습니다. 내가 알려준 대로 시작 인사말 후 심리상태 체크를 시작하세요.',
+        }
+      };
+      
+      this.client.realtime.send('response.create', responseCreate);
+      
+      logger.info('심리상태 체크를 시작했습니다.');
+    } catch (error) {
+      logCatchError(error, "심리상태 체크 시작 중 오류 발생");
+      throw new Error("심리상태 체크를 시작하는 데 실패했습니다.");
+    }
   }
 
   queueMessage(message: string): void {
@@ -65,7 +153,37 @@ export class RealtimeClientService {
       logCatchError(error, "메시지 전송 중 오류 발생");
     }
   }
+  /**
+   * 텍스트 메시지 전송 (간편 메소드)
+   */
+  sendTextMessage(text: string): void {
+    if (!this.client.isConnected()) {
+      throw new Error("클라이언트가 연결되지 않았습니다.");
+    }
 
+    try {
+      const messageEvent = {
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [{
+            type: 'input_text',
+            text: text
+          }]
+        }
+      };
+
+      this.client.realtime.send('conversation.item.create', messageEvent);
+      
+      // AI 응답 요청
+      this.client.realtime.send('response.create', {
+        type: 'response.create'
+      });
+    } catch (error) {
+      logCatchError(error, "텍스트 메시지 전송 중 오류 발생");
+    }
+  }
   disconnect(): void {
     this.client?.disconnect();
     this.messageQueue.length = 0;
@@ -104,6 +222,22 @@ export class RealtimeClientService {
         }));
 
         callback(sessionItems);
+    });
+  }
+
+  onResponseCompleted(
+    callback: (response: any) => void
+  ): void {
+    this.client.on("response.done", (event: any) => {
+      callback(event);
+    });
+  }
+
+  onTranscriptionCompleted(
+    callback: (transcription: string) => void
+  ): void {
+    this.client.on("conversation.item.input_audio_transcription.completed", (event: any) => {
+      callback(event.transcript);
     });
   }
 }
