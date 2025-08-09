@@ -37,8 +37,12 @@ export class RealtimeClientService {
     
     // 연결 후 지시문과 설정 업데이트
     await this.updateSessionWithInstructions();
-    
+
     this.processMessageQueue();
+
+    // 심리상태 체크 시작
+    await this.startPsychologyCheck();
+    
   }
 
   /**
@@ -79,26 +83,6 @@ export class RealtimeClientService {
   }
 
   /**
-   * 사용자 정의 지시문으로 세션 업데이트
-   */
-  async updateInstructions(customInstructions: string): Promise<void> {
-    try {
-      const sessionUpdate = {
-        type: 'session.update',
-        session: {
-          instructions: customInstructions
-        }
-      };
-
-      this.client.realtime.send('session.update', sessionUpdate);
-      logger.info('사용자 정의 지시문으로 세션을 업데이트했습니다.');
-    } catch (error) {
-      logCatchError(error, "지시문 업데이트 중 오류 발생");
-      throw new Error("지시문을 업데이트하는 데 실패했습니다.");
-    }
-  }
-
-  /**
    * 대화 시작 - 첫 번째 질문을 자동으로 시작
    */
   async startPsychologyCheck(): Promise<void> {
@@ -107,6 +91,8 @@ export class RealtimeClientService {
     }
 
     try {
+
+      // 대화 히스토리 저장 용 
       const startMessage = {
         type: 'conversation.item.create',
         item: {
@@ -120,13 +106,12 @@ export class RealtimeClientService {
       };
 
       this.client.realtime.send('conversation.item.create', startMessage);
-      
-      // AI가 응답하도록 요청
+      // Agent에게 상담을 시작하도록 요청 
       const responseCreate = {
         type: 'response.create',
         response: {
           modalities: ['text', 'audio'],
-          instructions: '첫 번째 질문(전반적 기분 상태)부터 시작해주세요.'
+          instructions: '이제 사용자와 연결되었습니다. 내가 알려준 대로 시작 인사말 후 심리상태 체크를 시작하세요.',
         }
       };
       
@@ -168,14 +153,12 @@ export class RealtimeClientService {
       logCatchError(error, "메시지 전송 중 오류 발생");
     }
   }
-
   /**
    * 텍스트 메시지 전송 (간편 메소드)
    */
   sendTextMessage(text: string): void {
     if (!this.client.isConnected()) {
-      logger.warn("클라이언트가 연결되지 않았습니다. 메시지를 큐에 추가합니다.");
-      return;
+      throw new Error("클라이언트가 연결되지 않았습니다.");
     }
 
     try {
@@ -201,7 +184,6 @@ export class RealtimeClientService {
       logCatchError(error, "텍스트 메시지 전송 중 오류 발생");
     }
   }
-
   disconnect(): void {
     this.client?.disconnect();
     this.messageQueue.length = 0;
