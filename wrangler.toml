@@ -16,3 +16,7 @@ enabled = true
 # You can modify this by changing the name of the project in wrangler.toml, 
 # and/or setting the `routes` param in this file. Learn more at 
 # https://developers.cloudflare.com/workers/configuration/routing/routes/#set-up-a-route-in-wranglertoml 
+
+[[kv_namespaces]]
+binding = "NARI_KV"
+id = "f2b4ac37ab1f48d498d979e350f433e0"

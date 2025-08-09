@@ -18,7 +18,7 @@ export default {
     const {
       backendClientServiceFactory,
       realtimeClientService
-    } = createAppContext(env);
+    } = await createAppContext(env);
 
     // 요청 유효성 검사
     const validationResult = await validateWebSocketRequest(request);

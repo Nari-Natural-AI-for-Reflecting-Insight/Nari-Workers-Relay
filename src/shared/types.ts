@@ -4,4 +4,5 @@ export type Env = {
   DEBUG_MODE: boolean;
   LOKI_URL: string;
   LOKI_JOB_NAME: string;
+  NARI_KV: KVNamespace;
 }
